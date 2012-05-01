@@ -1,2 +1,44 @@
 #!/usr/bin/env lua
-require("app")()
+LHTTPD_VERSION="0.3"
+if ngx then
+	require("app")()
+	return
+end
+local apphandler = require "app"
+require "xavante"
+require "xavante.filehandler"
+
+local appdir = arg[1]
+print(("lhttpd v%s, running in devel mode"):format(LHTTPD_VERSION))
+if not appdir then
+	print("No app name specified.")
+	print(("run %s path/to/app, fe. %s examples/blog"):format(arg[0], arg[0]))
+	return
+end
+
+xavante.HTTP { 
+	server = {host="*", port=8080},
+	defaultHost = {
+		rules = {
+			-- serve static content as usual
+			{
+				match = "^/static/.*",
+				with = xavante.filehandler,
+				params = { baseDir = appdir }
+			},
+			{
+				match = "^/favicon\.ico",
+				with = xavante.filehandler,
+				params = { baseDir = appdir.."/static" }
+			},
+			-- handle everything else to the app
+			{
+				match = ".*",
+				with = apphandler,
+				params = { appdir = appdir },
+			}
+		}
+	}
+}
+
+xavante.start()

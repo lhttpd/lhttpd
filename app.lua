@@ -9,6 +9,7 @@ require "sql"
 require "log"
 require "str"
 require "web"
+require "api"
 
 setfenv(0, orig)
 
@@ -49,24 +50,50 @@ local strict = function(t,k,v)
 	error("use rawset(_G|current, `%s`, ...) to create new globals at runtime" % k, 2)
 end
 
-return function()
+local function getapp(appname,appdir)
+	if needreload(appname) then
+		loadapp(appname, appdir)
+	end
+	return appcache[appname]
+end
+
+local function run_in_ctx(info, current)
+	local fns = info.fns
+	for i=1,#fns do
+		setfenv(fns[i], current)()
+	end
+	getmetatable(current).__newindex = strict
+	return current.main()
+end
+
+local function debug_init(config)
+	local appdir = config.appdir
+	local appname = appdir
+	return function (req, res)
+		xpcall(function()
+			local info = getapp(appname,appdir)
+			local current = setmetatable({}, {__index=_G})
+			run_in_ctx(info, current)
+		end, function(err)
+			print(err)
+			print(debug.traceback(err))
+		end)
+	end
+end
+
+return function(config)
+	if xavante and not ngx then
+		return debug_init(config)
+	end
+
 	local appname = ngx.var.app
 	local appdir = ngx.var.appdir
 	xpcall(function()
-		if needreload(appname) then
-			loadapp(appname, appdir)
-		end
-		assert(appcache[appname])
-		local info = appcache[appname]
+		local info = getapp(appname,appdir)
 		local current = getfenv(0)
 		current.current = current
 		update(current, current.ngx)
-		local fns = info.fns
-		for i=1,#fns do
-			setfenv(fns[i], current)()
-		end
-		getmetatable(current).__newindex = strict
-		current.main()
+		run_in_ctx(info, current)
 	end, function(err)
 		ngx.header.content_type = 'text/plain'
 		ngx.print(debug.traceback(err))
