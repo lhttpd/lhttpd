@@ -1,1 +1,1 @@
-LHTTPD_VER="v6 git-e13e3e2 (HEAD, master)"
+LHTTPD_VER="v7 git-0ecadef (HEAD, master)"
