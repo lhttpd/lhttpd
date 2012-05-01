@@ -1,4 +1,6 @@
 #!/bin/sh
+if ! git diff --exit-code; then
 echo LHTTPD_VER=\"v`git log --pretty=oneline | wc -l` git-`git log -n1 --pretty=format:%h%d`\" > ver.lua
 git commit -asm "$*"
 git push
+fi
