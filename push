@@ -4,4 +4,3 @@ echo return \"v`git log --pretty=oneline | wc -l` git-`git log -n1 --pretty=form
 git commit -asm "$*"
 git push
 fi
-
