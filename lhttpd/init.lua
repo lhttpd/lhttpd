@@ -2,6 +2,7 @@ require "lhttpd.oop"
 require "lhttpd.fun"
 require "lhttpd.tab"
 require "lhttpd.str"
+require "lhttpd.json"
 url = require "socket.url"
 
 local run_server
