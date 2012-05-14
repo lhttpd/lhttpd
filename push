@@ -1,6 +1,6 @@
 #!/bin/sh
 if ! git diff --exit-code; then
-echo return \"v`git log --pretty=oneline | wc -l` git-`git log -n1 --pretty=format:%h%d`\" > ver.lua
+echo return \"v`git log --pretty=oneline | wc -l` git-`git log -n1 --pretty=format:%h%d`\" > lhttpd/ver.lua
 git commit -asm "$*"
 git push
 fi

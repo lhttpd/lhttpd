@@ -155,7 +155,7 @@ end
 -- `stop?` stop index
 -- `step?` increment (can be negative to go backwards)
 function	foldl(tab, val, lambda, start, stop, step)
-	for i=start or 1, stop or #tab, step do
+	for i=start or 1, stop or #tab, step or 1 do
 		val = lambda(val, tab[i])
 	end
 	return val

@@ -19,6 +19,9 @@ function mt:__mod(args)
 end
 mt.__mul = string.rep
 mt.__add = function(a,b)
+	if not a or not b then
+		error("cannot concat nil value", 2)
+	end
 	return a .. b
 end
 
