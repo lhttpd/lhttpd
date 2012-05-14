@@ -41,7 +41,16 @@ end
 function decorate(funval, dec)
 	-- decorate only functions
 	if type(funval) ~= "function" then return funval end
-	return fun(dec)
+	return dec(funval)
+end
+
+---------------------------------------------------------
+-- decorate a class method with a decorator
+-- `tab` table containing the class
+-- `name` method name
+-- `fun` the decorator function
+function decorate_method(tab,name,fun)
+	rawset(tab, name, decorate(rawget(tab, name), fun))
 end
 
 ---------------------------------------------------------
@@ -50,7 +59,7 @@ end
 -- `fun` a decorator function to apply to each method
 function decorate_class(index, fun)
 	for k,v in pairs(index) do
-		rawset(index, k, decorate(rawget(index, k), fun))
+		decorate_method(index, k, fun)
 	end
 end
 

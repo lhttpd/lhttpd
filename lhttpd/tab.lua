@@ -86,6 +86,31 @@ function update(dst,src)
 end
 
 ---------------------------------------------------------
+-- set default key to value
+-- `tab` table
+-- `key` key to check
+-- `val` value to set if its not defined
+function setdefault(tab,key,val)
+	local v=tab[key]
+	return v or rawset(tab, key, val)
+end
+
+---------------------------------------------------------
+-- set default key/values into one table from another
+-- `dst` destination table
+-- `src` source table
+function setdefaults(dst,src)
+	for k,v in pairs(src) do
+		if not dst[k] then
+			dst[k] = v
+		end
+	end
+	return dst
+end
+
+
+
+---------------------------------------------------------
 -- import key/values into one table from another
 -- `dst` destination table
 -- `src` source table
