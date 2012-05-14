@@ -41,6 +41,13 @@ function setfield(t,k,v)
 	return t
 end
 
+function getfield(tv)
+	if type(tv)=="table" and tv[1] then
+		return tv[1]
+	end
+	return tv
+end
+
 ---------------------------------------------------------
 -- insert value into a table
 -- `t` table to insert into
@@ -92,7 +99,7 @@ end
 -- `val` value to set if its not defined
 function setdefault(tab,key,val)
 	local v=tab[key]
-	return v or rawset(tab, key, val)
+	return v or (rawset(tab, key, val) and val)
 end
 
 ---------------------------------------------------------
@@ -211,6 +218,85 @@ function sub(t,i1,i2)
 	end
 	return res
 end
+
+local function quote (v)
+    if type(v) == 'string' then
+        return ('%q'):format(v)
+    else
+        return tostring(v)
+    end
+end
+
+local tbuff
+function tbuff(t,buff,k)
+    local used
+    local function append (v)
+        buff[k] = v
+        k = k + 1
+    end
+    local function table_out (value)
+        if not buff.tables[value] then
+            buff.tables[value] = true
+            k = tbuff(value,buff,k)
+        else
+            append("<cycle>")
+        end
+    end
+    append "{"
+    if #t > 0 then -- dump out the array part
+        used = {}
+        for i,value in ipairs(t) do
+            if type(value) == 'table' then
+                table_out(value)
+            else
+                append(quote(value))
+            end
+            append ","
+            used[i] = true
+        end
+    end
+    for key,value in pairs(t) do
+        if not used or not used[key] then
+            -- non-identifiers need []
+            if buff.stupid or type(key)~='string' or not key:match '^[%a_][%w_]*$' then
+                if type(key)=='table' then
+                    key = ml.tstring(key)
+                else
+                    key = quote(key)
+                end
+                key = "["..key.."]"
+            end
+            append(key..'=')
+            if type(value) ~= 'table' then
+                append(quote(value))
+            else
+                table_out(value)
+            end
+            append ","
+        end
+    end
+    if buff[k-1] == "," then k = k - 1 end
+    append "}"
+    return k
+end
+
+
+---------------------------------------------------------
+-- return a string representation of a Lua value.
+-- @param t the table
+-- @param stupid put out all keys as [..]
+-- @return a string
+function tstring(t,stupid)
+    if type(t) == 'table' and not (getmetatable(t) and getmetatable(t).__tostring) then
+        local buff = {tables={[t]=true},stupid=stupid}
+        pcall(tbuff,t,buff,1)
+        return tconcat(buff)
+    else
+        return quote(t)
+    end
+end
+
+
 
 ---------------------------------------------------------
 -- return table with keys and values swapped

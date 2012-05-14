@@ -98,7 +98,7 @@ filter=map
 ---------------------------------------------------------
 -- similiar to `map`, but for arrays:
 -- `tab` array of values (hash part is ignored)
--- `lambda` to be called: dst:append(lambda(idx,v)?)
+-- `lambda` to be called: dst:append(lambda(v)?)
 -- `gen?` is the table generator used, defaults to `pairs`
 -- `dst?` is the destination table (defaults to empty)
 -- `start?` starting index
@@ -108,13 +108,24 @@ function	imap(tab, lambda, start, stop, step)
 	local res = {}
 	local n = 1
 	for i=start or 1,stop or #tab,step or 1 do
-		local r = lambda(i,v)
+		local v=tab[i]
+		local r = lambda(v)
 		if r ~= nil then
 			res[n]=r
 			n=n+1
 		end
 	end
 	return res
+end
+
+function	fmap(fun, ...)
+	local res={}
+	local list = {...}
+	for i=1,#list do
+		local v =fun(list[i])
+		append(res, v)
+	end
+	return unpack(res)
 end
 
 ---------------------------------------------------------

@@ -81,4 +81,9 @@ function string:appendto(tab)
 	return self
 end
 
+local o_print = print
+function print(...)
+	return o_print(unpack(imap({...}, tstring)))
+end
+
 
