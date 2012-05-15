@@ -2,7 +2,7 @@ require "lhttpd.oop"
 require "lhttpd.fun"
 require "lhttpd.tab"
 require "lhttpd.str"
-require "lhttpd.json"
+require "lhttpd.web"
 url = require "socket.url"
 
 local run_server
@@ -59,6 +59,10 @@ if not ngx then
 	decorate_metaclass(copas.wrap("tcp"), g_switch)
 	decorate_metaclass(copas.wrap("udp"), g_switch)
 
+function write(...)
+	append(buffer, ...)
+end
+
 local function send_buffer(data)
 	client:send(data)
 end
@@ -79,11 +83,15 @@ end
 
 local function serialize_headers(htab)
 	return concat(fold(htab, {}, function(t,k,v)
-		for i=1,#v do
-			append(t, "%s: %s" % {k,tostring(v[i])})
+		if type(v) == "table" then
+			for i=1,#v do
+				append(t, "%s: %s" % {k,tostring(v[i])})
+			end
+		else
+			append(t, "%s: %s" % {k,tostring(v)})
 		end
 		return t
-	end))
+	end),"\r\n")
 end
 
 local function process_request()
@@ -108,10 +116,11 @@ local function process_request()
 	-- serve dynamic content
 	local match, val, args = find_match(server.dynamic, path)
 	if match then
+		header["Content-Type"] = "text/html"
 		val(args)
 		local buf = concat(flatten(buffer))
 		header["Content-Length"] = #buf
-		send_response(200, serialize_headers(headers)+"\r\n")
+		send_response(200, serialize_headers(header)+"\r\n\r\n")
 		send_buffer(buf)
 		client.socket:close()
 		return

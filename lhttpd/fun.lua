@@ -172,8 +172,10 @@ end
 
 local dflatten
 function	dflatten(dst,tab)
+	assert(dst)
 	if type(tab)~='table' then
-		return tinsert(dst,tab)
+		tinsert(dst,tab)
+		return dst
 	end
 	return foldl(tab, dst, dflatten)
 end

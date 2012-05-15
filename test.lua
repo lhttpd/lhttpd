@@ -1,17 +1,25 @@
+#!./lua
 -- server settings
 templates = "www"
 static = {
 	{ "^/static/.*", "www/%1" }
 }
 
-function func1()
-	print("handler called!")
+function front_page()
+	write(HTML {
+		HEAD {
+			TITLE { "test page" }
+		},
+		BODY {
+			H1 { "this is a test page!" }
+		}
+	})
 end
 
 root = "."
 
 dynamic = {
-	{ "^/.*", func1 }
+	{ "^/$", front_page }
 }
 
 require("lhttpd")()
